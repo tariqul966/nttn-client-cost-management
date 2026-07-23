@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NTTN Client Records & Monthly Billing</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        scl: { light: '#3b82f6', bg: '#dbeafe', text: '#1e40af' },
+                        fhl: { light: '#f97316', bg: '#ffedd5', text: '#9a3412' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-200">
+
+    <!-- Top Header Bar -->
+    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-indigo-600 text-white rounded-xl shadow-md shadow-indigo-500/20">
+                    <i class="fa-solid fa-network-wired text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">NTTN Client Records & Analytics</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Capacity & Bandwidth Monthly Cost Management</p>
+                </div>
+            </div>
+
+            <!-- Dark / Light Mode Switcher -->
+            <button id="themeToggleBtn" class="flex items-center space-x-2 px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <i id="themeToggleIcon" class="fa-solid fa-moon text-lg"></i>
+                <span id="themeToggleText" class="text-xs font-semibold uppercase tracking-wider hidden sm:inline">Dark Mode</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- KPI Summary Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Card 1: Total Registered Clients -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Clients</p>
+                    <h3 id="kpiTotalClients" class="text-2xl font-black mt-1 text-slate-900 dark:text-white">0</h3>
+                    <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Registered Profiles</p>
+                </div>
+                <div class="p-3.5 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-2xl">
+                    <i class="fa-solid fa-address-book text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Card 2: Total Bill Received -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Bill Received</p>
+                    <h3 id="kpiTotalBill" class="text-2xl font-black mt-1 text-slate-900 dark:text-white">৳ 0</h3>
+                    <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1 font-medium"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Billing Revenue</p>
+                </div>
+                <div class="p-3.5 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                    <i class="fa-solid fa-file-invoice-dollar text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Card 3: Total Cost -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Cost (Inc. Capacity)</p>
+                    <h3 id="kpiTotalCost" class="text-2xl font-black mt-1 text-slate-900 dark:text-white">৳ 0</h3>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">Cap + INT + GGC + FNA + CDN + BDIX</p>
+                </div>
+                <div class="p-3.5 bg-amber-50 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-2xl">
+                    <i class="fa-solid fa-coins text-2xl"></i>
+                </div>
+            </div>
+
+            <!-- Card 4: Net Profit / Loss -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Net Profit / Loss</p>
+                    <h3 id="kpiNetProfit" class="text-2xl font-black mt-1">৳ 0</h3>
+                    <p id="kpiProfitBreakdown" class="text-xs mt-1 font-semibold text-slate-500 dark:text-slate-400">0 profitable · 0 loss</p>
+                </div>
+                <div id="kpiProfitIconBg" class="p-3.5 bg-slate-100 text-slate-600 rounded-2xl">
+                    <i id="kpiProfitIcon" class="fa-solid fa-chart-pie text-2xl"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Charts Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-indigo-500"></i> Provider Revenue vs Total Cost
+                    </h2>
+                </div>
+                <div class="h-64 relative">
+                    <canvas id="providerChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <i class="fa-solid fa-pie-chart text-indigo-500"></i> Cost Distribution (Inc. Capacity)
+                    </h2>
+                </div>
+                <div class="h-64 relative flex items-center justify-center">
+                    <canvas id="costDistributionChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Controls & Data Table Section -->
+        <section class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-hidden">
+            
+            <!-- Table Header Controls -->
+            <div class="p-5 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">Monthly Billing Log</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">View and entry monthly bill received and capacity expenses.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Search Input -->
+                    <div class="relative flex-1 sm:w-48">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchInput" placeholder="Search client..." class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white placeholder-slate-400 transition">
+                    </div>
+
+                    <!-- Month Filter Dropdown -->
+                    <select id="monthFilter" class="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white cursor-pointer transition">
+                        <option value="ALL">All Months</option>
+                    </select>
+
+                    <!-- Provider Filter -->
+                    <select id="providerFilter" class="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:text-white cursor-pointer transition">
+                        <option value="ALL">All Providers</option>
+                        <option value="SCL">SCL (Summit)</option>
+                        <option value="FHL">FHL (Fiber@Home)</option>
+                    </select>
+
+                    <!-- 1. Register Client Button -->
+                    <button id="openRegisterClientModalBtn" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-solid fa-user-plus text-indigo-500"></i> Register Client
+                    </button>
+
+                    <!-- 2. Monthly Bill Entry Button -->
+                    <button id="openBillModalBtn" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition active:scale-95">
+                        <i class="fa-solid fa-file-circle-plus"></i> Entry Monthly Bill
+                    </button>
+                </div>
+            </div>
+
+            <!-- Responsive Table Container -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700 select-none uppercase text-[11px] font-semibold tracking-wider">
+                            <th class="py-3.5 px-3 text-center">#</th>
+                            <th class="py-3.5 px-3 cursor-pointer hover:text-indigo-600 transition" onclick="sortTable('month')">Month</th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-indigo-600 transition" onclick="sortTable('clientName')">Client Name</th>
+                            <th class="py-3.5 px-3 cursor-pointer hover:text-indigo-600 transition" onclick="sortTable('provider')">Provider</th>
+                            <th class="py-3.5 px-3">Capacity</th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-indigo-600 transition text-right" onclick="sortTable('billReceived')">Bill Received</th>
+                            <th class="py-3.5 px-3 text-right bg-indigo-50/50 dark:bg-indigo-950/20">Capacity Cost</th>
+                            <th class="py-3.5 px-3 text-right">Internet</th>
+                            <th class="py-3.5 px-3 text-right">GGC</th>
+                            <th class="py-3.5 px-3 text-right">FNA</th>
+                            <th class="py-3.5 px-3 text-right">CDN</th>
+                            <th class="py-3.5 px-3 text-right">BDIX</th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-indigo-600 transition text-right" onclick="sortTable('totalCost')">Total Cost</th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:text-indigo-600 transition text-center" onclick="sortTable('netProfit')">Profit/Loss</th>
+                            <th class="py-3.5 px-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientTableBody" class="divide-y divide-slate-200 dark:divide-slate-700/60 font-medium">
+                        <!-- Dynamic Table Rows -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden p-8 text-center text-slate-400">
+                <i class="fa-solid fa-folder-open text-4xl mb-2 text-slate-300 dark:text-slate-600"></i>
+                <p class="text-sm font-medium">No monthly bill entries found.</p>
+            </div>
+            
+            <div class="px-5 py-3 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/40 text-xs text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                <span id="recordCountText">Showing 0 entries</span>
+                <span>NTTN Operational Analytics Platform by Rion</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal 1: One-Time Client Registration Modal -->
+    <div id="registerClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-200 opacity-0 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transform scale-95 transition-transform duration-200 my-8">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200 dark:border-slate-700">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-indigo-500"></i> Register New Client Profile (One-time)
+                </h3>
+                <button onclick="closeModal('registerClientModal')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="registerClientForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Client Name *</label>
+                        <input type="text" id="regName" required placeholder="e.g. Amber IT Ltd." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Provider *</label>
+                        <select id="regProvider" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
+                            <option value="SCL">SCL (Summit)</option>
+                            <option value="FHL">FHL (Fiber@Home)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 dark:border-slate-700 pt-3">
+                    <p class="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">
+                        <i class="fa-solid fa-sliders text-indigo-500 mr-1"></i> Default Capacity & Bandwidth Profile (Qty & Rate)
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <!-- Capacity Profile -->
+                        <div class="col-span-2 bg-indigo-50/50 dark:bg-indigo-950/20 p-2.5 rounded-lg border border-indigo-200 dark:border-indigo-900/50">
+                            <label class="block font-bold text-indigo-700 dark:text-indigo-300 mb-1">Capacity (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyCapacity" min="0" placeholder="Qty (Gbps/Mbps)" class="w-1/2 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs font-semibold">
+                                <input type="number" id="regRateCapacity" min="0" placeholder="Rate ৳" class="w-1/2 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs font-semibold">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Internet (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyInternet" min="0" placeholder="Qty" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                                <input type="number" id="regRateInternet" min="0" placeholder="Rate ৳" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">GGC (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyGGC" min="0" placeholder="Qty" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                                <input type="number" id="regRateGGC" min="0" placeholder="Rate ৳" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">FNA (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyFNA" min="0" placeholder="Qty" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                                <input type="number" id="regRateFNA" min="0" placeholder="Rate ৳" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">CDN (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyCDN" min="0" placeholder="Qty" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                                <input type="number" id="regRateCDN" min="0" placeholder="Rate ৳" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                            </div>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <label class="block font-semibold text-slate-500 mb-1">BDIX (Qty / Rate)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="regQtyBDIX" min="0" placeholder="Qty" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                                <input type="number" id="regRateBDIX" min="0" placeholder="Rate ৳" class="w-1/2 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded text-xs">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('registerClientModal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-md">Register Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Monthly Bill Entry Modal -->
+    <div id="monthlyBillModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-200 opacity-0 overflow-y-auto">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transform scale-95 transition-transform duration-200 my-8">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-200 dark:border-slate-700">
+                <h3 id="billModalTitle" class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-circle-plus text-indigo-500"></i> Entry Monthly Bill Received
+                </h3>
+                <button onclick="closeModal('monthlyBillModal')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="monthlyBillForm" class="space-y-4">
+                <input type="hidden" id="billRecordId">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Billing Month *</label>
+                        <input type="month" id="billMonth" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Select Registered Client *</label>
+                        <select id="billClientId" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Bill Received This Month (BDT ৳) *</label>
+                    <input type="number" id="billReceived" min="0" required placeholder="e.g. 450000" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-sm font-bold text-emerald-600 dark:text-emerald-400 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <!-- Monthly Expenses Breakdown -->
+                <div class="border-t border-slate-200 dark:border-slate-700 pt-3">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                            <i class="fa-solid fa-calculator text-indigo-500 mr-1"></i> Cost Breakdown (Capacity + Bandwidth)
+                        </p>
+                        <span class="text-xs text-indigo-600 dark:text-indigo-400 font-bold" id="formTotalCostPreview">Total Cost: ৳ 0</span>
+                    </div>
+
+                    <div class="space-y-3 bg-slate-50 dark:bg-slate-900/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700/60 text-xs">
+                        
+                        <!-- Header Row -->
+                        <div class="grid grid-cols-12 gap-2 text-slate-400 font-semibold text-[11px] uppercase border-b border-slate-200 dark:border-slate-700 pb-1.5 hidden sm:grid">
+                            <div class="col-span-3">Expense Item</div>
+                            <div class="col-span-3">Quantity</div>
+                            <div class="col-span-3">Rate (৳)</div>
+                            <div class="col-span-3 text-right">Calculated Cost</div>
+                        </div>
+
+                        <!-- Capacity Row -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-indigo-50/60 dark:bg-indigo-950/30 p-1.5 rounded-lg">
+                            <div class="sm:col-span-3 font-bold text-indigo-700 dark:text-indigo-300">Capacity</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyCapacity" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs font-semibold"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateCapacity" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs font-semibold"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-indigo-700 dark:text-indigo-300" id="previewCapacity">৳ 0</div>
+                        </div>
+
+                        <!-- Internet -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                            <div class="sm:col-span-3 font-bold text-slate-700 dark:text-slate-300">Internet</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyInternet" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateInternet" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-slate-800 dark:text-slate-200" id="previewInternet">৳ 0</div>
+                        </div>
+
+                        <!-- GGC -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center border-t border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0 sm:border-0">
+                            <div class="sm:col-span-3 font-bold text-slate-700 dark:text-slate-300">GGC</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyGGC" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateGGC" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-slate-800 dark:text-slate-200" id="previewGGC">৳ 0</div>
+                        </div>
+
+                        <!-- FNA -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center border-t border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0 sm:border-0">
+                            <div class="sm:col-span-3 font-bold text-slate-700 dark:text-slate-300">FNA</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyFNA" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateFNA" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-slate-800 dark:text-slate-200" id="previewFNA">৳ 0</div>
+                        </div>
+
+                        <!-- CDN -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center border-t border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0 sm:border-0">
+                            <div class="sm:col-span-3 font-bold text-slate-700 dark:text-slate-300">CDN</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyCDN" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateCDN" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-slate-800 dark:text-slate-200" id="previewCDN">৳ 0</div>
+                        </div>
+
+                        <!-- BDIX -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center border-t border-slate-200/60 dark:border-slate-800 pt-2 sm:pt-0 sm:border-0">
+                            <div class="sm:col-span-3 font-bold text-slate-700 dark:text-slate-300">BDIX</div>
+                            <div class="sm:col-span-3"><input type="number" id="qtyBDIX" min="0" placeholder="Qty" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3"><input type="number" id="rateBDIX" min="0" placeholder="Rate ৳" class="cost-calc-input w-full px-2 py-1 bg-white dark:bg-slate-800 border rounded text-xs"></div>
+                            <div class="sm:col-span-3 text-right font-bold text-slate-800 dark:text-slate-200" id="previewBDIX">৳ 0</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3 border-t border-slate-200 dark:border-slate-700">
+                    <button type="button" onclick="closeModal('monthlyBillModal')" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl shadow-md">Save Monthly Bill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: View Details Modal -->
+    <div id="viewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden transition-opacity duration-200 opacity-0">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transform scale-95 transition-transform duration-200">
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-indigo-500"></i> Monthly Billing & Expenses Overview
+                </h3>
+                <button onclick="closeModal('viewModal')" class="text-slate-400 text-lg transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div id="viewModalBody" class="space-y-4 text-sm">
+                <!-- Dynamically populated -->
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+                <button onclick="closeModal('viewModal')" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // 1. REGISTERED CLIENTS DATABASE (Added ONCE with Capacity & Bandwidth Profile)
+        let registeredClients = [
+            { id: 1, name: "Amber IT Limited", provider: "SCL", capacityQty: 10, capacityRate: 5000, internetQty: 500, internetRate: 300, ggcQty: 1000, ggcRate: 50, fnaQty: 600, fnaRate: 50, cdnQty: 400, cdnRate: 50, bdixQty: 500, bdixRate: 40 },
+            { id: 2, name: "Link3 Technologies Ltd", provider: "FHL", capacityQty: 15, capacityRate: 4800, internetQty: 750, internetRate: 290, ggcQty: 1500, ggcRate: 55, fnaQty: 1000, fnaRate: 50, cdnQty: 800, cdnRate: 45, bdixQty: 800, bdixRate: 40 },
+            { id: 3, name: "Carnival Internet", provider: "SCL", capacityQty: 8, capacityRate: 5000, internetQty: 600, internetRate: 300, ggcQty: 1200, ggcRate: 50, fnaQty: 800, fnaRate: 50, cdnQty: 600, cdnRate: 50, bdixQty: 500, bdixRate: 40 },
+            { id: 4, name: "Dot Internet Service", provider: "FHL", capacityQty: 12, capacityRate: 4800, internetQty: 650, internetRate: 290, ggcQty: 1300, ggcRate: 50, fnaQty: 900, fnaRate: 50, cdnQty: 700, cdnRate: 45, bdixQty: 600, bdixRate: 40 }
+        ];
+
+        // 2. MONTHLY BILLING LOGS (Logged EVERY MONTH)
+        let monthlyBills = [
+            { id: 101, clientId: 1, month: "2026-07", billReceived: 450000, capacityQty: 10, capacityRate: 5000, internetQty: 500, internetRate: 300, ggcQty: 1000, ggcRate: 50, fnaQty: 600, fnaRate: 50, cdnQty: 400, cdnRate: 50, bdixQty: 500, bdixRate: 40 },
+            { id: 102, clientId: 2, month: "2026-07", billReceived: 620000, capacityQty: 15, capacityRate: 4800, internetQty: 750, internetRate: 290, ggcQty: 1500, ggcRate: 55, fnaQty: 1000, fnaRate: 50, cdnQty: 800, cdnRate: 45, bdixQty: 800, bdixRate: 40 },
+            { id: 103, clientId: 3, month: "2026-07", billReceived: 320000, capacityQty: 8, capacityRate: 5000, internetQty: 600, internetRate: 300, ggcQty: 1200, ggcRate: 50, fnaQty: 800, fnaRate: 50, cdnQty: 600, cdnRate: 50, bdixQty: 500, bdixRate: 40 },
+            { id: 104, clientId: 1, month: "2026-06", billReceived: 440000, capacityQty: 10, capacityRate: 5000, internetQty: 500, internetRate: 300, ggcQty: 1000, ggcRate: 50, fnaQty: 600, fnaRate: 50, cdnQty: 400, cdnRate: 50, bdixQty: 500, bdixRate: 40 },
+            { id: 105, clientId: 4, month: "2026-06", billReceived: 500000, capacityQty: 12, capacityRate: 4800, internetQty: 650, internetRate: 290, ggcQty: 1300, ggcRate: 50, fnaQty: 900, fnaRate: 50, cdnQty: 700, cdnRate: 45, bdixQty: 600, bdixRate: 40 }
+        ];
+
+        // State Management
+        let sortKey = '';
+        let sortAsc = true;
+        let chartInstance1 = null;
+        let chartInstance2 = null;
+
+        const formatMonthLabel = (monthStr) => {
+            if (!monthStr) return 'N/A';
+            const [year, month] = monthStr.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        };
+
+        const formatBDT = (amount) => '৳ ' + Number(amount).toLocaleString('en-BD');
+
+        // Dark/Light Theme Switcher
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const themeToggleIcon = document.getElementById('themeToggleIcon');
+        const themeToggleText = document.getElementById('themeToggleText');
+
+        themeToggleBtn.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            themeToggleIcon.className = isDark ? 'fa-solid fa-moon text-lg' : 'fa-solid fa-sun text-lg text-amber-500';
+            themeToggleText.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            updateCharts();
+        });
+
+        // Compute Financial Costs Including Capacity
+        function getJoinedData() {
+            return monthlyBills.map(bill => {
+                const client = registeredClients.find(c => c.id === Number(bill.clientId)) || { name: 'Unknown', provider: 'SCL' };
+                
+                const capacityCost = (Number(bill.capacityQty) || 0) * (Number(bill.capacityRate) || 0);
+                const internetCost = (Number(bill.internetQty) || 0) * (Number(bill.internetRate) || 0);
+                const ggcCost = (Number(bill.ggcQty) || 0) * (Number(bill.ggcRate) || 0);
+                const fnaCost = (Number(bill.fnaQty) || 0) * (Number(bill.fnaRate) || 0);
+                const cdnCost = (Number(bill.cdnQty) || 0) * (Number(bill.cdnRate) || 0);
+                const bdixCost = (Number(bill.bdixQty) || 0) * (Number(bill.bdixRate) || 0);
+
+                const totalCost = capacityCost + internetCost + ggcCost + fnaCost + cdnCost + bdixCost;
+                const netProfit = Number(bill.billReceived || 0) - totalCost;
+
+                return {
+                    ...bill,
+                    clientName: client.name,
+                    provider: client.provider,
+                    capacityCost,
+                    internetCost,
+                    ggcCost,
+                    fnaCost,
+                    cdnCost,
+                    bdixCost,
+                    totalCost,
+                    netProfit
+                };
+            });
+        }
+
+        // Live Cost Calculation in Modal Form
+        function calculateFormCosts() {
+            const services = ['Capacity', 'Internet', 'GGC', 'FNA', 'CDN', 'BDIX'];
+            let grandTotalCost = 0;
+
+            services.forEach(service => {
+                const qty = Number(document.getElementById(`qty${service}`)?.value) || 0;
+                const rate = Number(document.getElementById(`rate${service}`)?.value) || 0;
+                const cost = qty * rate;
+
+                const previewEl = document.getElementById(`preview${service}`);
+                if (previewEl) previewEl.textContent = formatBDT(cost);
+
+                grandTotalCost += cost;
+            });
+
+            const formTotalPreview = document.getElementById('formTotalCostPreview');
+            if (formTotalPreview) formTotalPreview.textContent = `Total Cost: ${formatBDT(grandTotalCost)}`;
+        }
+
+        document.querySelectorAll('.cost-calc-input').forEach(input => {
+            input.addEventListener('input', calculateFormCosts);
+        });
+
+        // Populate Month Filter Dropdown
+        function populateMonthFilter() {
+            const monthFilter = document.getElementById('monthFilter');
+            const currentSelected = monthFilter.value;
+
+            const uniqueMonths = [...new Set(monthlyBills.map(b => b.month))].filter(Boolean).sort().reverse();
+
+            monthFilter.innerHTML = '<option value="ALL">All Months</option>';
+            uniqueMonths.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = formatMonthLabel(m);
+                monthFilter.appendChild(opt);
+            });
+
+            if (uniqueMonths.includes(currentSelected)) {
+                monthFilter.value = currentSelected;
+            }
+        }
+
+        // Populate Client Dropdown in Monthly Billing Modal
+        function populateClientDropdown() {
+            const dropdown = document.getElementById('billClientId');
+            dropdown.innerHTML = '';
+
+            if (registeredClients.length === 0) {
+                dropdown.innerHTML = '<option value="">No registered clients found! Register first.</option>';
+                return;
+            }
+
+            registeredClients.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = `${c.name} (${c.provider} - Cap: ${c.capacityQty || 0})`;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        // Auto-fill Client Profile Defaults into Billing Modal when Client Selected
+        document.getElementById('billClientId').addEventListener('change', (e) => {
+            const clientId = Number(e.target.value);
+            const client = registeredClients.find(c => c.id === clientId);
+            if (!client) return;
+
+            document.getElementById('qtyCapacity').value = client.capacityQty || 0;
+            document.getElementById('rateCapacity').value = client.capacityRate || 0;
+
+            document.getElementById('qtyInternet').value = client.internetQty || 0;
+            document.getElementById('rateInternet').value = client.internetRate || 0;
+            document.getElementById('qtyGGC').value = client.ggcQty || 0;
+            document.getElementById('rateGGC').value = client.ggcRate || 0;
+            document.getElementById('qtyFNA').value = client.fnaQty || 0;
+            document.getElementById('rateFNA').value = client.fnaRate || 0;
+            document.getElementById('qtyCDN').value = client.cdnQty || 0;
+            document.getElementById('rateCDN').value = client.cdnRate || 0;
+            document.getElementById('qtyBDIX').value = client.bdixQty || 0;
+            document.getElementById('rateBDIX').value = client.bdixRate || 0;
+
+            calculateFormCosts();
+        });
+
+        // Update KPIs
+        function updateKPIs(joinedData) {
+            document.getElementById('kpiTotalClients').textContent = registeredClients.length;
+            
+            const totalBill = joinedData.reduce((acc, c) => acc + Number(c.billReceived), 0);
+            const totalCost = joinedData.reduce((acc, c) => acc + c.totalCost, 0);
+            const netProfit = totalBill - totalCost;
+
+            const profitableCount = joinedData.filter(c => c.netProfit >= 0).length;
+            const lossCount = joinedData.filter(c => c.netProfit < 0).length;
+
+            document.getElementById('kpiTotalBill').textContent = formatBDT(totalBill);
+            document.getElementById('kpiTotalCost').textContent = formatBDT(totalCost);
+
+            const kpiNetProfitEl = document.getElementById('kpiNetProfit');
+            const kpiProfitIconBg = document.getElementById('kpiProfitIconBg');
+            const kpiProfitIcon = document.getElementById('kpiProfitIcon');
+
+            kpiNetProfitEl.textContent = formatBDT(netProfit);
+            document.getElementById('kpiProfitBreakdown').textContent = `${profitableCount} profitable · ${lossCount} at loss`;
+
+            if (netProfit >= 0) {
+                kpiNetProfitEl.className = 'text-2xl font-black mt-1 text-emerald-600 dark:text-emerald-400';
+                kpiProfitIconBg.className = 'p-3.5 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 rounded-2xl';
+                kpiProfitIcon.className = 'fa-solid fa-arrow-trend-up text-2xl';
+            } else {
+                kpiNetProfitEl.className = 'text-2xl font-black mt-1 text-rose-600 dark:text-rose-400';
+                kpiProfitIconBg.className = 'p-3.5 bg-rose-50 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 rounded-2xl';
+                kpiProfitIcon.className = 'fa-solid fa-arrow-trend-down text-2xl';
+            }
+        }
+
+        // Filter Data
+        function getFilteredData() {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const providerVal = document.getElementById('providerFilter').value;
+            const monthVal = document.getElementById('monthFilter').value;
+
+            const joined = getJoinedData();
+
+            return joined.filter(item => {
+                const matchesSearch = item.clientName.toLowerCase().includes(searchVal) || item.provider.toLowerCase().includes(searchVal);
+                const matchesProvider = providerVal === 'ALL' || item.provider === providerVal;
+                const matchesMonth = monthVal === 'ALL' || item.month === monthVal;
+                return matchesSearch && matchesProvider && matchesMonth;
+            });
+        }
+
+        // Render Data Table
+        function renderTable() {
+            let filtered = getFilteredData();
+
+            if (sortKey) {
+                filtered.sort((a, b) => {
+                    let valA = a[sortKey];
+                    let valB = b[sortKey];
+                    if (typeof valA === 'string') {
+                        return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    }
+                    return sortAsc ? valA - valB : valB - valA;
+                });
+            }
+
+            const tbody = document.getElementById('clientTableBody');
+            tbody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                document.getElementById('emptyState').classList.remove('hidden');
+            } else {
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+
+            filtered.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors border-b border-slate-100 dark:border-slate-700/40';
+
+                const providerBadge = item.provider === 'SCL' 
+                    ? `<span class="bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 font-bold px-2.5 py-0.5 rounded-md text-[11px]">SCL</span>`
+                    : `<span class="bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300 font-bold px-2.5 py-0.5 rounded-md text-[11px]">FHL</span>`;
+
+                const isProfit = item.netProfit >= 0;
+                const profitBadge = isProfit
+                    ? `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 font-bold px-2.5 py-1 rounded-full text-[11px]"><i class="fa-solid fa-arrow-up text-[10px]"></i> ${formatBDT(item.netProfit)}</span>`
+                    : `<span class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 font-bold px-2.5 py-1 rounded-full text-[11px]"><i class="fa-solid fa-arrow-down text-[10px]"></i> ${formatBDT(item.netProfit)}</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3.5 px-3 text-center font-bold text-slate-400">${index + 1}</td>
+                    <td class="py-3.5 px-3">
+                        <span class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-2 py-0.5 rounded text-[11px]">
+                            <i class="fa-regular fa-calendar-check mr-1 text-indigo-500"></i>${formatMonthLabel(item.month)}
+                        </span>
+                    </td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">${item.clientName}</td>
+                    <td class="py-3.5 px-3">${providerBadge}</td>
+                    <td class="py-3.5 px-3 font-semibold text-slate-600 dark:text-slate-300">${item.capacityQty || 0}</td>
+                    <td class="py-3.5 px-4 text-right font-bold text-slate-800 dark:text-slate-200">${formatBDT(item.billReceived)}</td>
+                    <td class="py-3.5 px-3 text-right font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50/40 dark:bg-indigo-950/20">${formatBDT(item.capacityCost)}</td>
+                    <td class="py-3.5 px-3 text-right text-slate-600 dark:text-slate-400">${formatBDT(item.internetCost)}</td>
+                    <td class="py-3.5 px-3 text-right text-slate-600 dark:text-slate-400">${formatBDT(item.ggcCost)}</td>
+                    <td class="py-3.5 px-3 text-right text-slate-600 dark:text-slate-400">${formatBDT(item.fnaCost)}</td>
+                    <td class="py-3.5 px-3 text-right text-slate-600 dark:text-slate-400">${formatBDT(item.cdnCost)}</td>
+                    <td class="py-3.5 px-3 text-right text-slate-600 dark:text-slate-400">${formatBDT(item.bdixCost)}</td>
+                    <td class="py-3.5 px-4 text-right font-bold text-slate-900 dark:text-white">${formatBDT(item.totalCost)}</td>
+                    <td class="py-3.5 px-4 text-center">${profitBadge}</td>
+                    <td class="py-3.5 px-4 text-center">
+                        <div class="flex items-center justify-center space-x-1">
+                            <button onclick="viewBillDetails(${item.id})" class="p-1.5 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="View Details">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button onclick="editMonthlyBill(${item.id})" class="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Edit Bill">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteMonthlyBill(${item.id})" class="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition" title="Delete Entry">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('recordCountText').textContent = `Showing ${filtered.length} billing records`;
+
+            updateKPIs(filtered);
+            updateCharts();
+        }
+
+        // Sort Table
+        function sortTable(key) {
+            if (sortKey === key) {
+                sortAsc = !sortAsc;
+            } else {
+                sortKey = key;
+                sortAsc = true;
+            }
+            renderTable();
+        }
+
+        // Modal Helpers
+        function openModal(modalId) {
+            const el = document.getElementById(modalId);
+            el.classList.remove('hidden');
+            setTimeout(() => {
+                el.classList.remove('opacity-0');
+                el.children[0].classList.remove('scale-95');
+                el.children[0].classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const el = document.getElementById(modalId);
+            el.classList.add('opacity-0');
+            el.children[0].classList.remove('scale-100');
+            el.children[0].classList.add('scale-95');
+            setTimeout(() => {
+                el.classList.add('hidden');
+            }, 200);
+        }
+
+        // Open One-Time Registration Modal
+        document.getElementById('openRegisterClientModalBtn').addEventListener('click', () => {
+            document.getElementById('registerClientForm').reset();
+            openModal('registerClientModal');
+        });
+
+        // Save One-Time Client Profile
+        document.getElementById('registerClientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newClient = {
+                id: Date.now(),
+                name: document.getElementById('regName').value.trim(),
+                provider: document.getElementById('regProvider').value,
+                capacityQty: Number(document.getElementById('regQtyCapacity').value) || 0,
+                capacityRate: Number(document.getElementById('regRateCapacity').value) || 0,
+                internetQty: Number(document.getElementById('regQtyInternet').value) || 0,
+                internetRate: Number(document.getElementById('regRateInternet').value) || 0,
+                ggcQty: Number(document.getElementById('regQtyGGC').value) || 0,
+                ggcRate: Number(document.getElementById('regRateGGC').value) || 0,
+                fnaQty: Number(document.getElementById('regQtyFNA').value) || 0,
+                fnaRate: Number(document.getElementById('regRateFNA').value) || 0,
+                cdnQty: Number(document.getElementById('regQtyCDN').value) || 0,
+                cdnRate: Number(document.getElementById('regRateCDN').value) || 0,
+                bdixQty: Number(document.getElementById('regQtyBDIX').value) || 0,
+                bdixRate: Number(document.getElementById('regRateBDIX').value) || 0,
+            };
+
+            registeredClients.unshift(newClient);
+            populateClientDropdown();
+            closeModal('registerClientModal');
+            alert(`Client "${newClient.name}" registered successfully!`);
+            renderTable();
+        });
+
+        // Open Monthly Bill Entry Modal
+        document.getElementById('openBillModalBtn').addEventListener('click', () => {
+            if (registeredClients.length === 0) {
+                alert('Please register at least one client profile first!');
+                openModal('registerClientModal');
+                return;
+            }
+
+            document.getElementById('monthlyBillForm').reset();
+            document.getElementById('billRecordId').value = '';
+            document.getElementById('billModalTitle').innerHTML = `<i class="fa-solid fa-file-circle-plus text-indigo-500"></i> Entry Monthly Bill Received`;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('billMonth').value = `${year}-${month}`;
+
+            populateClientDropdown();
+            document.getElementById('billClientId').dispatchEvent(new Event('change'));
+
+            openModal('monthlyBillModal');
+        });
+
+        // Save Monthly Bill Record
+        document.getElementById('monthlyBillForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const recordId = document.getElementById('billRecordId').value;
+            const clientId = Number(document.getElementById('billClientId').value);
+
+            const billRecord = {
+                id: recordId ? Number(recordId) : Date.now(),
+                clientId: clientId,
+                month: document.getElementById('billMonth').value,
+                billReceived: Number(document.getElementById('billReceived').value) || 0,
+                capacityQty: Number(document.getElementById('qtyCapacity').value) || 0,
+                capacityRate: Number(document.getElementById('rateCapacity').value) || 0,
+                internetQty: Number(document.getElementById('qtyInternet').value) || 0,
+                internetRate: Number(document.getElementById('rateInternet').value) || 0,
+                ggcQty: Number(document.getElementById('qtyGGC').value) || 0,
+                ggcRate: Number(document.getElementById('rateGGC').value) || 0,
+                fnaQty: Number(document.getElementById('qtyFNA').value) || 0,
+                fnaRate: Number(document.getElementById('rateFNA').value) || 0,
+                cdnQty: Number(document.getElementById('qtyCDN').value) || 0,
+                cdnRate: Number(document.getElementById('rateCDN').value) || 0,
+                bdixQty: Number(document.getElementById('qtyBDIX').value) || 0,
+                bdixRate: Number(document.getElementById('rateBDIX').value) || 0
+            };
+
+            if (recordId) {
+                const idx = monthlyBills.findIndex(b => b.id === Number(recordId));
+                if (idx !== -1) monthlyBills[idx] = billRecord;
+            } else {
+                monthlyBills.unshift(billRecord);
+            }
+
+            populateMonthFilter();
+            closeModal('monthlyBillModal');
+            renderTable();
+        });
+
+        // Edit Monthly Bill Entry
+        function editMonthlyBill(id) {
+            const bill = monthlyBills.find(b => b.id === id);
+            if (!bill) return;
+
+            populateClientDropdown();
+
+            document.getElementById('billRecordId').value = bill.id;
+            document.getElementById('billMonth').value = bill.month;
+            document.getElementById('billClientId').value = bill.clientId;
+            document.getElementById('billReceived').value = bill.billReceived;
+
+            document.getElementById('qtyCapacity').value = bill.capacityQty || 0;
+            document.getElementById('rateCapacity').value = bill.capacityRate || 0;
+
+            document.getElementById('qtyInternet').value = bill.internetQty || 0;
+            document.getElementById('rateInternet').value = bill.internetRate || 0;
+            document.getElementById('qtyGGC').value = bill.ggcQty || 0;
+            document.getElementById('rateGGC').value = bill.ggcRate || 0;
+            document.getElementById('qtyFNA').value = bill.fnaQty || 0;
+            document.getElementById('rateFNA').value = bill.fnaRate || 0;
+            document.getElementById('qtyCDN').value = bill.cdnQty || 0;
+            document.getElementById('rateCDN').value = bill.cdnRate || 0;
+            document.getElementById('qtyBDIX').value = bill.bdixQty || 0;
+            document.getElementById('rateBDIX').value = bill.bdixRate || 0;
+
+            document.getElementById('billModalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-indigo-500"></i> Edit Monthly Bill Entry`;
+
+            calculateFormCosts();
+            openModal('monthlyBillModal');
+        }
+
+        // Delete Monthly Bill
+        function deleteMonthlyBill(id) {
+            const joined = getJoinedData();
+            const item = joined.find(b => b.id === id);
+            if (!item) return;
+
+            if (confirm(`Delete billing record of "${item.clientName}" for ${formatMonthLabel(item.month)}?`)) {
+                monthlyBills = monthlyBills.filter(b => b.id !== id);
+                populateMonthFilter();
+                renderTable();
+            }
+        }
+
+        // View Details Modal
+        function viewBillDetails(id) {
+            const joined = getJoinedData();
+            const item = joined.find(b => b.id === id);
+            if (!item) return;
+
+            const modalBody = document.getElementById('viewModalBody');
+            modalBody.innerHTML = `
+                <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl space-y-2 border border-slate-200 dark:border-slate-700">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Billing Month</span>
+                        <span class="font-bold text-indigo-600 dark:text-indigo-400 text-sm"><i class="fa-regular fa-calendar-check mr-1"></i>${formatMonthLabel(item.month)}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">Client Name</span>
+                        <span class="font-bold text-slate-900 dark:text-white text-base">${item.clientName}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-slate-400 font-semibold uppercase">NTTN Provider</span>
+                        <span class="font-bold ${item.provider === 'SCL' ? 'text-blue-600' : 'text-orange-500'}">${item.provider}</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-1">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Monthly Financial Summary</p>
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-700/60">
+                        <span class="text-slate-600 dark:text-slate-400">Bill Received:</span>
+                        <span class="font-bold text-emerald-600 dark:text-emerald-400">${formatBDT(item.billReceived)}</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-700/60">
+                        <span class="text-slate-600 dark:text-slate-400">Total Costs (Inc. Capacity):</span>
+                        <span class="font-bold text-amber-600 dark:text-amber-400">${formatBDT(item.totalCost)}</span>
+                    </div>
+                    <div class="flex justify-between py-1 font-bold">
+                        <span class="text-slate-800 dark:text-slate-200">Net Profit / Loss:</span>
+                        <span class="${item.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${formatBDT(item.netProfit)}</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+                    <p class="font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px]">Expenses Breakdown (Capacity + Bandwidth)</p>
+                    <div class="grid grid-cols-4 font-semibold text-slate-400 border-b border-slate-200 dark:border-slate-800 pb-1">
+                        <span>Expense Item</span>
+                        <span class="text-center">Qty</span>
+                        <span class="text-center">Rate</span>
+                        <span class="text-right">Cost</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50/50 dark:bg-indigo-950/20 py-1 rounded">
+                        <span>Capacity</span>
+                        <span class="text-center">${item.capacityQty || 0}</span>
+                        <span class="text-center">৳ ${item.capacityRate || 0}</span>
+                        <span class="text-right">${formatBDT(item.capacityCost)}</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-slate-600 dark:text-slate-300">
+                        <span class="font-bold">Internet</span>
+                        <span class="text-center">${item.internetQty || 0}</span>
+                        <span class="text-center">৳ ${item.internetRate || 0}</span>
+                        <span class="text-right font-bold">${formatBDT(item.internetCost)}</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-slate-600 dark:text-slate-300">
+                        <span class="font-bold">GGC</span>
+                        <span class="text-center">${item.ggcQty || 0}</span>
+                        <span class="text-center">৳ ${item.ggcRate || 0}</span>
+                        <span class="text-right font-bold">${formatBDT(item.ggcCost)}</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-slate-600 dark:text-slate-300">
+                        <span class="font-bold">FNA</span>
+                        <span class="text-center">${item.fnaQty || 0}</span>
+                        <span class="text-center">৳ ${item.fnaRate || 0}</span>
+                        <span class="text-right font-bold">${formatBDT(item.fnaCost)}</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-slate-600 dark:text-slate-300">
+                        <span class="font-bold">CDN</span>
+                        <span class="text-center">${item.cdnQty || 0}</span>
+                        <span class="text-center">৳ ${item.cdnRate || 0}</span>
+                        <span class="text-right font-bold">${formatBDT(item.cdnCost)}</span>
+                    </div>
+                    <div class="grid grid-cols-4 text-slate-600 dark:text-slate-300">
+                        <span class="font-bold">BDIX</span>
+                        <span class="text-center">${item.bdixQty || 0}</span>
+                        <span class="text-center">৳ ${item.bdixRate || 0}</span>
+                        <span class="text-right font-bold">${formatBDT(item.bdixCost)}</span>
+                    </div>
+                </div>
+            `;
+
+            openModal('viewModal');
+        }
+
+        // Search & Filter Event Listeners
+        document.getElementById('searchInput').addEventListener('input', renderTable);
+        document.getElementById('providerFilter').addEventListener('change', renderTable);
+        document.getElementById('monthFilter').addEventListener('change', renderTable);
+
+        // Chart Visualizations
+        function updateCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)';
+
+            const filtered = getFilteredData();
+
+            // Chart 1: Provider Revenue vs Total Cost
+            const sclClients = filtered.filter(c => c.provider === 'SCL');
+            const fhlClients = filtered.filter(c => c.provider === 'FHL');
+
+            const sclBill = sclClients.reduce((acc, c) => acc + c.billReceived, 0);
+            const sclCost = sclClients.reduce((acc, c) => acc + c.totalCost, 0);
+
+            const fhlBill = fhlClients.reduce((acc, c) => acc + c.billReceived, 0);
+            const fhlCost = fhlClients.reduce((acc, c) => acc + c.totalCost, 0);
+
+            if (chartInstance1) chartInstance1.destroy();
+            const ctx1 = document.getElementById('providerChart').getContext('2d');
+            chartInstance1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['SCL (Summit)', 'FHL (Fiber@Home)'],
+                    datasets: [
+                        { label: 'Total Revenue (BDT)', data: [sclBill, fhlBill], backgroundColor: '#3b82f6', borderRadius: 6 },
+                        { label: 'Total Cost (BDT)', data: [sclCost, fhlCost], backgroundColor: '#f97316', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        x: { ticks: { color: textColor }, grid: { color: gridColor } },
+                        y: { ticks: { color: textColor }, grid: { color: gridColor } }
+                    }
+                }
+            });
+
+            // Chart 2: Cost Breakdown across Capacity + 5 Services
+            const totalCapacity = filtered.reduce((acc, c) => acc + c.capacityCost, 0);
+            const totalInternet = filtered.reduce((acc, c) => acc + c.internetCost, 0);
+            const totalGGC = filtered.reduce((acc, c) => acc + c.ggcCost, 0);
+            const totalFNA = filtered.reduce((acc, c) => acc + c.fnaCost, 0);
+            const totalCDN = filtered.reduce((acc, c) => acc + c.cdnCost, 0);
+            const totalBDIX = filtered.reduce((acc, c) => acc + c.bdixCost, 0);
+
+            if (chartInstance2) chartInstance2.destroy();
+            const ctx2 = document.getElementById('costDistributionChart').getContext('2d');
+            chartInstance2 = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Capacity', 'Internet', 'GGC', 'FNA', 'CDN', 'BDIX'],
+                    datasets: [{
+                        data: [totalCapacity, totalInternet, totalGGC, totalFNA, totalCDN, totalBDIX],
+                        backgroundColor: ['#8b5cf6', '#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: textColor, boxWidth: 10 } }
+                    }
+                }
+            });
+        }
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            populateMonthFilter();
+            populateClientDropdown();
+            renderTable();
+        });
+    </script>
+</body>
+</html>
